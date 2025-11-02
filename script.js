@@ -240,6 +240,7 @@ function setupBoyleSimulation() {
     let pressure = 1.0;
     let volume = 100.0;
     let particles = [];
+    let isRecording = false;
 
     // 초기 입자 생성
     function initParticles() {
@@ -266,6 +267,24 @@ function setupBoyleSimulation() {
         // 보일의 법칙: P1V1 = P2V2 (초기 압력 1기압, 부피 100mL)
         volume = (1.0 * 100.0) / pressure;
         volumeDisplay.textContent = volume.toFixed(1) + ' mL';
+
+        // 자동 기록 모드일 때
+        if (isRecording) {
+            const data = {
+                pressure: pressure.toFixed(1),
+                volume: volume.toFixed(1)
+            };
+            
+            // 중복 확인
+            const isDuplicate = boyleData.some(d => 
+                d.pressure === data.pressure && d.volume === data.volume
+            );
+
+            if (!isDuplicate) {
+                boyleData.push(data);
+                updateBoyleTable();
+            }
+        }
     });
 
     // 애니메이션
@@ -320,24 +339,33 @@ function setupBoyleSimulation() {
 
     animate();
 
-    // 데이터 기록
+    // 데이터 기록 토글
     recordBtn.addEventListener('click', () => {
-        const data = {
-            pressure: pressure.toFixed(1),
-            volume: volume.toFixed(1)
-        };
+        isRecording = !isRecording;
         
-        // 중복 확인
-        const isDuplicate = boyleData.some(d => 
-            d.pressure === data.pressure && d.volume === data.volume
-        );
+        if (isRecording) {
+            recordBtn.textContent = '⏸️ 기록 중지';
+            recordBtn.classList.remove('btn-primary');
+            recordBtn.classList.add('btn-secondary');
+            
+            // 현재 값 즉시 기록
+            const data = {
+                pressure: pressure.toFixed(1),
+                volume: volume.toFixed(1)
+            };
+            
+            const isDuplicate = boyleData.some(d => 
+                d.pressure === data.pressure && d.volume === data.volume
+            );
 
-        if (!isDuplicate) {
-            boyleData.push(data);
-            updateBoyleTable();
-            alert('✅ 데이터가 기록되었습니다!');
+            if (!isDuplicate) {
+                boyleData.push(data);
+                updateBoyleTable();
+            }
         } else {
-            alert('⚠️ 이미 같은 값이 기록되어 있습니다.');
+            recordBtn.textContent = '▶️ 기록 시작';
+            recordBtn.classList.remove('btn-secondary');
+            recordBtn.classList.add('btn-primary');
         }
     });
 
@@ -352,6 +380,13 @@ function setupBoyleSimulation() {
             pressureValue.textContent = '1.0';
             volumeDisplay.textContent = '100.0 mL';
             initParticles();
+            
+            // 기록 모드도 초기화
+            isRecording = false;
+            recordBtn.textContent = '▶️ 기록 시작';
+            recordBtn.classList.remove('btn-secondary');
+            recordBtn.classList.add('btn-primary');
+            
             alert('🔄 초기화되었습니다.');
         }
     });
@@ -394,6 +429,7 @@ function setupCharlesSimulation() {
     let temperature = 20; // 섭씨
     let volume = 100.0;
     let particles = [];
+    let isRecording = false;
 
     // 초기 입자 생성
     function initParticles() {
@@ -433,6 +469,24 @@ function setupCharlesSimulation() {
             particle.vx = Math.cos(angle) * newSpeed;
             particle.vy = Math.sin(angle) * newSpeed;
         });
+
+        // 자동 기록 모드일 때
+        if (isRecording) {
+            const data = {
+                temperature: temperature,
+                volume: volume.toFixed(1)
+            };
+            
+            // 중복 확인
+            const isDuplicate = charlesData.some(d => 
+                parseInt(d.temperature) === temperature && d.volume === data.volume
+            );
+
+            if (!isDuplicate) {
+                charlesData.push(data);
+                updateCharlesTable();
+            }
+        }
     });
 
     // 애니메이션
@@ -491,24 +545,33 @@ function setupCharlesSimulation() {
 
     animate();
 
-    // 데이터 기록
+    // 데이터 기록 토글
     recordBtn.addEventListener('click', () => {
-        const data = {
-            temperature: temperature,
-            volume: volume.toFixed(1)
-        };
+        isRecording = !isRecording;
         
-        // 중복 확인
-        const isDuplicate = charlesData.some(d => 
-            parseInt(d.temperature) === temperature && d.volume === data.volume
-        );
+        if (isRecording) {
+            recordBtn.textContent = '⏸️ 기록 중지';
+            recordBtn.classList.remove('btn-primary');
+            recordBtn.classList.add('btn-secondary');
+            
+            // 현재 값 즉시 기록
+            const data = {
+                temperature: temperature,
+                volume: volume.toFixed(1)
+            };
+            
+            const isDuplicate = charlesData.some(d => 
+                parseInt(d.temperature) === temperature && d.volume === data.volume
+            );
 
-        if (!isDuplicate) {
-            charlesData.push(data);
-            updateCharlesTable();
-            alert('✅ 데이터가 기록되었습니다!');
+            if (!isDuplicate) {
+                charlesData.push(data);
+                updateCharlesTable();
+            }
         } else {
-            alert('⚠️ 이미 같은 값이 기록되어 있습니다.');
+            recordBtn.textContent = '▶️ 기록 시작';
+            recordBtn.classList.remove('btn-secondary');
+            recordBtn.classList.add('btn-primary');
         }
     });
 
@@ -523,6 +586,13 @@ function setupCharlesSimulation() {
             temperatureValue.textContent = '20';
             volumeDisplay.textContent = '100.0 mL';
             initParticles();
+            
+            // 기록 모드도 초기화
+            isRecording = false;
+            recordBtn.textContent = '▶️ 기록 시작';
+            recordBtn.classList.remove('btn-secondary');
+            recordBtn.classList.add('btn-primary');
+            
             alert('🔄 초기화되었습니다.');
         }
     });
@@ -617,19 +687,52 @@ function setupAssessment() {
         }
 
         let correctCount = 0;
+        
+        // 각 문제별로 정답 여부 확인 및 표시
         currentQuestions.forEach((question, index) => {
+            const quizItem = document.querySelectorAll('.quiz-item')[index];
+            const options = quizItem.querySelectorAll('.quiz-option');
+            
+            // 모든 옵션의 기존 클래스 제거
+            options.forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+                opt.style.pointerEvents = 'none'; // 제출 후 클릭 방지
+            });
+            
             if (userAnswers[index] === question.correct) {
+                // 정답인 경우
                 correctCount++;
+                options[userAnswers[index]].classList.add('correct');
+                quizItem.style.borderLeft = '5px solid #4caf50';
+            } else {
+                // 오답인 경우
+                options[userAnswers[index]].classList.add('incorrect');
+                options[question.correct].classList.add('correct');
+                quizItem.style.borderLeft = '5px solid #f44336';
+                
+                // 틀린 문제 강조
+                quizItem.style.backgroundColor = '#ffebee';
             }
         });
 
+        // 결과 메시지
         if (correctCount === 5) {
             resultDiv.className = 'success';
             resultDiv.innerHTML = `🎉 축하합니다! 모든 문제를 맞혔어요! (${correctCount}/5)`;
         } else {
             resultDiv.className = 'error';
-            resultDiv.innerHTML = `💪 ${correctCount}개 맞혔어요! 다시 도전해보세요! (${correctCount}/5)`;
+            resultDiv.innerHTML = `
+                💪 ${correctCount}개 맞혔어요! 틀린 문제를 다시 확인해보세요. (${correctCount}/5)<br>
+                <small style="color: #666; margin-top: 10px; display: block;">
+                    빨간색 테두리: 틀린 문제 | 초록색: 정답
+                </small>
+            `;
         }
+        
+        // 제출 버튼 비활성화
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor = 'not-allowed';
     });
 
     // 새 문제
